@@ -1,15 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using WebAPI_FinalProject.Data;
+using WebAPI_FinalProject.Interfaces;
 
 namespace WebAPI_FinalProject
 {
@@ -26,10 +22,18 @@ namespace WebAPI_FinalProject
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddSwaggerDocument(settings => { settings.Title = "Contemporary Programming: Web API Final Project"; });
+
+            services.AddDbContext<WebAPI_FinalProjectContext>(options => options.UseSqlServer(Configuration.GetConnectionString("WebAPI_FinalProjectContext")));
+            services.AddScoped<ITeamMemberContextDAO, TeamMemberContextDAO>();
+            services.AddScoped<ITalkingHeadsAlbumContextDAO, TalkingHeadsAlbumContextDAO>();
+            services.AddScoped<IPortfolioProjectContextDAO, PortfolioProjectContextDAO>();
+            services.AddScoped<IStarTrekVoyagerEpisodeContextDAO, StarTrekVoyagerEpisodeContextDAO>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, WebAPI_FinalProjectContext context)
         {
             if (env.IsDevelopment())
             {
@@ -39,6 +43,10 @@ namespace WebAPI_FinalProject
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            context.Database.Migrate();
+            app.UseOpenApi();
+            app.UseSwaggerUi3();
 
             app.UseAuthorization();
 
